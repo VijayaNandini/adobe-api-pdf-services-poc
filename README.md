@@ -1,11 +1,17 @@
 # PoC on Adobe PDF Services APIs
 
+
+### Virtual Environment
 For Windows Machine
-Create venv
+1. Create venv
+```
 python -m venv .venv
-
-Activate venv
+```
+2. Activate venv
+```
 .venv/Scripts/activate
-
-Deactivate venv
+```
+3. Deactivate venv
+```
 deactivate
+```
