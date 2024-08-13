@@ -1,3 +1,9 @@
+
+adobe-dc-pdf-services-sdk-python/*
+
+src/resources/*
+# src/*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
