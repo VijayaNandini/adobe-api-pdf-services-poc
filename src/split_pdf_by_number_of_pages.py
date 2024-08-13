@@ -31,6 +31,7 @@ logging.basicConfig(level=logging.INFO)
 #
 def split_pdf(input_pdf_name,page_count):
     print("Inside split_pdf function")
+    print(f'Client ID: {os.getenv('PDF_SERVICES_CLIENT_ID')}')
     try:
         # file = open('src/resources/splitPDFInput.pdf', 'rb')
         file = open(input_pdf_name,'rb')
