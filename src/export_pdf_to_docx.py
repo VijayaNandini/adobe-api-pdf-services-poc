@@ -12,27 +12,29 @@ from datetime import datetime
 
 from adobe.pdfservices.operation.auth.service_principal_credentials import ServicePrincipalCredentials
 from adobe.pdfservices.operation.exception.exceptions import ServiceApiException, ServiceUsageException, SdkException
+from adobe.pdfservices.operation.io.cloud_asset import CloudAsset
 from adobe.pdfservices.operation.io.stream_asset import StreamAsset
 from adobe.pdfservices.operation.pdf_services import PDFServices
 from adobe.pdfservices.operation.pdf_services_media_type import PDFServicesMediaType
-from adobe.pdfservices.operation.pdfjobs.jobs.split_pdf_job import SplitPDFJob
-from adobe.pdfservices.operation.pdfjobs.params.split_pdf.split_pdf_params import SplitPDFParams
-from adobe.pdfservices.operation.pdfjobs.result.split_pdf_result import SplitPDFResult
+from adobe.pdfservices.operation.pdfjobs.jobs.export_pdf_job import ExportPDFJob
+from adobe.pdfservices.operation.pdfjobs.params.export_pdf.export_pdf_params import ExportPDFParams
+from adobe.pdfservices.operation.pdfjobs.params.export_pdf.export_pdf_target_format import ExportPDFTargetFormat
+from adobe.pdfservices.operation.pdfjobs.result.export_pdf_result import ExportPDFResult
 
 # Initialize the logger
 logging.basicConfig(level=logging.INFO)
 
 
 #
-# This sample illustrates how to split input PDF into multiple PDF files on the basis of the maximum number
-# of pages each of the output files can have.
+# This sample illustrates how to export a PDF file to a Word (DOCX) file
 #
 # Refer to README.md for instructions on how to run the samples.
 #
-def split_pdf(input_pdf_name,page_count):
+def export_pdf_to_docx(input_pdf_name):
+    print("Inside export_pdf_to_docx function")
     try:
-        # file = open('src/resources/splitPDFInput.pdf', 'rb')
-        file = open(input_pdf_name,'rb')
+        # file = open('src/resources/exportPDFInput.pdf', 'rb')
+        file = open(input_pdf_name, 'rb')
         input_stream = file.read()
         file.close()
 
@@ -41,46 +43,48 @@ def split_pdf(input_pdf_name,page_count):
             client_id=os.getenv('PDF_SERVICES_CLIENT_ID'),
             client_secret=os.getenv('PDF_SERVICES_CLIENT_SECRET')
         )
+
         # Creates a PDF Services instance
         pdf_services = PDFServices(credentials=credentials)
 
         # Creates an asset(s) from source file(s) and upload
-        input_asset = pdf_services.upload(input_stream=input_stream,
-                                            mime_type=PDFServicesMediaType.PDF)
+        input_asset = pdf_services.upload(input_stream=input_stream, mime_type=PDFServicesMediaType.PDF)
 
         # Create parameters for the job
-        split_pdf_params = SplitPDFParams(page_count=page_count)
+        export_pdf_params = ExportPDFParams(target_format=ExportPDFTargetFormat.DOCX)
 
         # Creates a new job instance
-        split_pdf_job = SplitPDFJob(input_asset, split_pdf_params)
+        export_pdf_job = ExportPDFJob(input_asset=input_asset, export_pdf_params=export_pdf_params)
 
         # Submit the job and gets the job result
-        location = pdf_services.submit(split_pdf_job)
-        pdf_services_response = pdf_services.get_job_result(location, SplitPDFResult)
+        location = pdf_services.submit(export_pdf_job)
+        pdf_services_response = pdf_services.get_job_result(location, ExportPDFResult)
 
         # Get content from the resulting asset(s)
-        result_assets = pdf_services_response.get_result().get_assets()
+        result_asset: CloudAsset = pdf_services_response.get_result().get_asset()
+        stream_asset: StreamAsset = pdf_services.get_content(result_asset)
 
         # Creates an output stream and copy stream asset's content to it
+        # output_file_path = self.create_output_file_path()
         now = datetime.now()
         time_stamp = now.strftime("%Y%m%d%H%M%S")
-        os.makedirs("output/SplitPDFByNumberOfPages", exist_ok=True)
-        output_file_path = f"output/SplitPDFByNumberOfPages/split-{time_stamp}"
+        os.makedirs("data", exist_ok=True) # output/ExportPDFToDOCX
+        output_file_path = f"data/output-document-{time_stamp}.docx"
 
-        for i, result_asset in enumerate(result_assets):
-            stream_asset: StreamAsset = pdf_services.get_content(result_asset)
-            with open(f"{output_file_path}-{i}.pdf", "wb") as file:
-                file.write(stream_asset.get_input_stream())
-        return len(result_assets)
+        with open(output_file_path, "wb") as file:
+            file.write(stream_asset.get_input_stream())
+        return output_file_path
     except (ServiceApiException, ServiceUsageException, SdkException) as e:
         logging.exception(f'Exception encountered while executing operation: {e}')
-#
- 
 
+# # Generates a string containing a directory structure and file name for the output file
 # @staticmethod
 # def create_output_file_path() -> str:
 #     now = datetime.now()
 #     time_stamp = now.strftime("%Y-%m-%dT%H-%M-%S")
-#     os.makedirs("output/SplitPDFByNumberOfPages", exist_ok=True)
-#     return f"output/SplitPDFByNumberOfPages/split{time_stamp}.pdf"
+#     os.makedirs("output/ExportPDFToDOCX", exist_ok=True)
+#     return f"output/ExportPDFToDOCX/export{time_stamp}.docx"
 
+
+# if __name__ == "__main__":
+#     ExportPDFToDOCX()
