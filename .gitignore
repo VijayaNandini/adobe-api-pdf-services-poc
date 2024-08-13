@@ -4,7 +4,7 @@ tmp*.ipynb
 input/*
 output/*
 adobe-dc-pdf-services-sdk-python/pdfservices-api-credentials.json
-data/*
+data_2/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
