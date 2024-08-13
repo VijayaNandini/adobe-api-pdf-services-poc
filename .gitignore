@@ -5,6 +5,7 @@ input/*
 output/*
 adobe-dc-pdf-services-sdk-python/pdfservices-api-credentials.json
 data_2/*
+data/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

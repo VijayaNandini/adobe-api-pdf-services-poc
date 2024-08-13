@@ -5,7 +5,7 @@ from src.split_pdf_by_number_of_pages import split_pdf
 from dotenv import load_dotenv
 
 
-# load_dotenv()
+load_dotenv()
 
 
 def pdf_processor(input_pdf_name, doc_needed: bool = False):
@@ -13,7 +13,7 @@ def pdf_processor(input_pdf_name, doc_needed: bool = False):
     print(input_pdf_name)
     processed_pdfs = []
     # Splitting PDF to smaller chunks
-    pdfs = split_pdf(input_pdf_name,page_count=10)
+    pdfs = split_pdf(input_pdf_name,page_count=5)
     for pdf in pdfs:
         print(f'Processing (OCR) for PDF {pdf}')
         processed_pdf = ocr_pdf(input_pdf_name=pdf)
