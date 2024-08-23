@@ -6,16 +6,20 @@ from src.get_pdf_properties import get_pdf_properties
 from dotenv import load_dotenv
 import math
 import os
+import logging
 
 
 load_dotenv()
+
+# Initialize the logger
+logging.basicConfig(level=logging.INFO)
 
 # Refer the following link to understand the limitations of Adobe PDF Services API:
 # https://developer.adobe.com/document-services/docs/overview/limits/
 
 def pdf_processor(input_pdf_name, doc_needed: bool = False):
-    print("Inside pdf_prcessor function")
-    print(input_pdf_name)
+    logging.info("Inside pdf_prcessor function")
+    logging.info(input_pdf_name)
     # Fetching PDF Properties
     pdf_properties = get_pdf_properties(input_pdf_name)
     pdf_page_count = pdf_properties.get("document").get("page_count")
@@ -25,14 +29,16 @@ def pdf_processor(input_pdf_name, doc_needed: bool = False):
         if num_of_chunks > 20: # File limit for combine pdf is 20
             return False # Rare case scenario: PDF page count is greater than 2000 (= 100 * 20), we won't process it. Error will be displayed in the input.
         #
+        logging.info("Splitting Input PDF..")
         processed_pdfs = []
         # Splitting PDF to smaller chunks
         pdfs = split_pdf(input_pdf_name,page_count=chunk_page_count)
         for pdf in pdfs:
-            print(f'Processing (OCR) for PDF {pdf}')
+            logging.info(f'Processing (OCR) for PDF {pdf}')
             processed_pdf = ocr_pdf(input_pdf_name=pdf)
             processed_pdfs.append(processed_pdf)
         #
+        logging.info(f"Processed PDFs: {processed_pdfs}")
         combined_pdf = combine_pdf(*processed_pdfs)
         if doc_needed:
             output_docx = export_pdf_to_docx(input_pdf_name=combined_pdf)

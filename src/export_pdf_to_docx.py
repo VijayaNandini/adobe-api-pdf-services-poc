@@ -32,7 +32,7 @@ logging.basicConfig(level=logging.INFO)
 # Refer to README.md for instructions on how to run the samples.
 #
 def export_pdf_to_docx(input_pdf_name):
-    print("Inside export_pdf_to_docx function")
+    logging.info("Inside export_pdf_to_docx function")
     # try:
     # file = open('src/resources/exportPDFInput.pdf', 'rb')
     file = open(input_pdf_name, 'rb')

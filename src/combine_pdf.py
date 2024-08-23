@@ -32,7 +32,7 @@ logging.basicConfig(level=logging.INFO)
 # Refer to README.md for instructions on how to run the samples.
 #
 def combine_pdf(*input_pdf_names):
-    print("Inside combine_pdf function")
+    logging.info("Inside combine_pdf function")
     # try:
     # Initial setup, create credentials instance
     credentials = ServicePrincipalCredentials(
@@ -59,7 +59,7 @@ def combine_pdf(*input_pdf_names):
     # total_pdfs = len(input_pdf_names)
     # for i in range(0,total_pdfs):
     for i,pdf_name in enumerate(input_pdf_names):
-        print(f'Collecting PDF: {pdf_name}')
+        logging.info(f'Collecting PDF: {pdf_name}')
         # file = open('src/resources/combineFilesInput1.pdf', 'rb')
         file = open(pdf_name, 'rb')
         input_stream = file.read()

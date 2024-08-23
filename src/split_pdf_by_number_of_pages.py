@@ -31,8 +31,8 @@ logging.basicConfig(level=logging.INFO)
 # Refer to README.md for instructions on how to run the samples.
 #
 def split_pdf(input_pdf_name,page_count):
-    print("Inside split_pdf function")
-    print(f'Client ID: {os.getenv("PDF_SERVICES_CLIENT_ID")}')
+    logging.info("Inside split_pdf function")
+    logging.info(f'Client ID: {os.getenv("PDF_SERVICES_CLIENT_ID")}')
     # try:
     # file = open('src/resources/splitPDFInput.pdf', 'rb')
     file = open(input_pdf_name,'rb')
@@ -86,7 +86,7 @@ def split_pdf(input_pdf_name,page_count):
             file.write(stream_asset.get_input_stream())
         output_pdfs.append(pdf_file_path)
         
-    print(f"Output PDFs: {output_pdfs}")
+    logging.info(f"Output PDFs: {output_pdfs}")
     return output_pdfs
     # except (ServiceApiException, ServiceUsageException, SdkException) as e:
     #     logging.exception(f'Exception encountered while executing operation: {e}')

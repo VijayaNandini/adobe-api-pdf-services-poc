@@ -71,9 +71,9 @@ def get_pdf_properties(input_pdf_name):
     pdf_properties_result = pdf_services_response.get_result()
 
     # Fetch the requisite properties of the specified PDF.
-    print(f'Size of the specified PDF file:" {pdf_properties_result.get_pdf_properties_dict().get("document").get("file_size")}')
-    print(f'Version of the specified PDF file:" {pdf_properties_result.get_pdf_properties_dict().get("document").get("pdf_version")}')
-    print(f'Page count of the specified PDF file:" {pdf_properties_result.get_pdf_properties_dict().get("document").get("page_count")}')
+    logging.info(f'Size of the specified PDF file:" {pdf_properties_result.get_pdf_properties_dict().get("document").get("file_size")}')
+    logging.info(f'Version of the specified PDF file:" {pdf_properties_result.get_pdf_properties_dict().get("document").get("pdf_version")}')
+    logging.info(f'Page count of the specified PDF file:" {pdf_properties_result.get_pdf_properties_dict().get("document").get("page_count")}')
 
     # pdf_properties = {'file_size':}
     return pdf_properties_result.get_pdf_properties_dict()

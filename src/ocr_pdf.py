@@ -32,7 +32,7 @@ logging.basicConfig(level=logging.INFO)
 # Refer to README.md for instructions on how to run the samples.
 #
 def ocr_pdf(input_pdf_name):
-    print("Inside ocr_pdf function")
+    logging.info("Inside ocr_pdf function")
     # try:
     # file = open('src/resources/ocrInput.pdf', 'rb')
     file = open(input_pdf_name, 'rb')
