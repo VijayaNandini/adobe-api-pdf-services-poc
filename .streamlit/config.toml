@@ -1,3 +1,3 @@
 [server]
-# maxUploadSize = 1048576  # Size in GB, = 1024GB
-maxUploadSize = 100 # Size in GB
+# maxUploadSize = 100 # Size in MB
+maxUploadSize = 200
