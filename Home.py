@@ -26,16 +26,6 @@ st.markdown('''
 
 st.title("Adobe PDF Services API PoC")
 
-def upload_input_doc():
-    print("Inside upload_input_doc function")
-    if st.session_state.uploaded_file is not None:
-        filename = st.session_state.uploaded_file.name
-        # filepath = os.path.join(input_dir,filename)
-        filepath = input_dir + '/' + filename
-        with open(filepath, 'wb') as f:
-            f.write(st.session_state.uploaded_file.getbuffer())
-        st.session_state.is_req_received = True
-        st.session_state.filename = filepath
 
 def refresh():
     print("Inside refresh function")
@@ -43,7 +33,8 @@ def refresh():
     st.session_state.uploaded_file.name = None
     st.session_state.output_file = None
 
-def clean_data():
+
+def clean_data(input_dir):
     if os.path.exists(input_dir):
         for file_name in os.listdir(input_dir):
             file_path = os.path.join(input_dir, file_name)
@@ -56,6 +47,20 @@ def clean_data():
                 print(f'Failed to delete {file_path}. Reason {e}')
     else:
         os.mkdir(input_dir)
+
+
+def upload_input_doc():
+    clean_data(input_dir)
+    print("Inside upload_input_doc function")
+    if st.session_state.uploaded_file is not None:
+        filename = st.session_state.uploaded_file.name
+        # filepath = os.path.join(input_dir,filename)
+        filepath = input_dir + '/' + filename
+        with open(filepath, 'wb') as f:
+            f.write(st.session_state.uploaded_file.getbuffer())
+        st.session_state.is_req_received = True
+        st.session_state.filename = filepath
+
 
 st.info('**This app is using Adobe PDF Services APIs: Split PDF, OCR PDF, and Combine PDF.**')
 st.info('**After processing, the PDF may be fully editable and searchable.**')
@@ -70,7 +75,7 @@ col1, col2, col3 = st.columns(3)
 if 'is_req_received' not in st.session_state:
     st.session_state['is_req_received'] = False
     st.session_state['output_file'] = None
-    clean_data()
+    # clean_data()
 
 c31, c32 = col3.columns([75,25])
 
@@ -90,7 +95,10 @@ if st.session_state.is_req_received:
     print("Request is received to process pdf.")
     with st.spinner('Processing PDF..'):
         output_filepath = pdf_processor(st.session_state.filename)
-        st.session_state.output_file = str(output_filepath)
+        if output_filepath == False:
+            st.error('**Input PDF page count exceeded maximum limit 2000. Please reduce page count and retry.**')
+        else:
+            st.session_state.output_file = str(output_filepath)
 
 
 if st.session_state.output_file is not None:

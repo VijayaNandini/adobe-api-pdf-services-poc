@@ -10,6 +10,7 @@ import logging
 import os
 
 from adobe.pdfservices.operation.auth.service_principal_credentials import ServicePrincipalCredentials
+from adobe.pdfservices.operation.config.client_config import ClientConfig
 from adobe.pdfservices.operation.exception.exceptions import ServiceApiException, ServiceUsageException, SdkException
 from adobe.pdfservices.operation.pdf_services import PDFServices
 from adobe.pdfservices.operation.pdf_services_media_type import PDFServicesMediaType
@@ -26,48 +27,60 @@ logging.basicConfig(level=logging.INFO)
 #
 # Refer to README.md for instructions on how to run the samples.
 #
-class GetPDFProperties:
-    def __init__(self):
-        try:
-            file = open('src/resources/pdfPropertiesInput.pdf', 'rb')
-            input_stream = file.read()
-            file.close()
+def get_pdf_properties(input_pdf_name):
+    # try:
+    # file = open('src/resources/pdfPropertiesInput.pdf', 'rb')
+    file = open(input_pdf_name, 'rb')
+    input_stream = file.read()
+    file.close()
 
-            # Initial setup, create credentials instance
-            credentials = ServicePrincipalCredentials(
-                client_id=os.getenv('PDF_SERVICES_CLIENT_ID'),
-                client_secret=os.getenv('PDF_SERVICES_CLIENT_SECRET')
-            )
+    # Initial setup, create credentials instance
+    credentials = ServicePrincipalCredentials(
+        client_id=os.getenv('PDF_SERVICES_CLIENT_ID'),
+        client_secret=os.getenv('PDF_SERVICES_CLIENT_SECRET')
+    )
 
-            # Creates a PDF Services instance
-            pdf_services = PDFServices(credentials=credentials)
+    # Creates client config instance with custom time-outs.
+    client_config: ClientConfig = ClientConfig(
+        connect_timeout=999000,
+        read_timeout=999000,
+    )
 
-            # Creates an asset(s) from source file(s) and upload
-            input_asset = pdf_services.upload(input_stream=input_stream,
-                                              mime_type=PDFServicesMediaType.PDF)
+    # Creates a PDF Services instance
+    pdf_services = PDFServices(
+        credentials=credentials,
+        client_config=client_config
+    )
 
-            pdf_properties_params = PDFPropertiesParams(include_page_level_properties=True)
+    # # Creates a PDF Services instance
+    # pdf_services = PDFServices(credentials=credentials)
 
-            # Creates a new job instance
-            pdf_properties_job = PDFPropertiesJob(input_asset=input_asset, pdf_properties_params=pdf_properties_params)
+    # Creates an asset(s) from source file(s) and upload
+    input_asset = pdf_services.upload(input_stream=input_stream,
+                                        mime_type=PDFServicesMediaType.PDF)
 
-            # Submit the job and gets the job result
-            location = pdf_services.submit(pdf_properties_job)
-            pdf_services_response = pdf_services.get_job_result(location, PDFPropertiesResult)
+    pdf_properties_params = PDFPropertiesParams(include_page_level_properties=True)
 
-            pdf_properties_result = pdf_services_response.get_result()
+    # Creates a new job instance
+    pdf_properties_job = PDFPropertiesJob(input_asset=input_asset, pdf_properties_params=pdf_properties_params)
 
-            # Fetch the requisite properties of the specified PDF.
-            print("Size of the specified PDF file:"
-                  + str(pdf_properties_result.get_pdf_properties_dict().get("document").get("file_size")))
-            print("Version of the specified PDF file:"
-                  + str(pdf_properties_result.get_pdf_properties_dict().get("document").get("pdf_version")))
-            print("Page count of the specified PDF file:"
-                  + str(pdf_properties_result.get_pdf_properties_dict().get("document").get("page_count")))
+    # Submit the job and gets the job result
+    location = pdf_services.submit(pdf_properties_job)
+    pdf_services_response = pdf_services.get_job_result(location, PDFPropertiesResult)
 
-        except (ServiceApiException, ServiceUsageException, SdkException) as e:
-            logging.exception(f'Exception encountered while executing operation: {e}')
+    pdf_properties_result = pdf_services_response.get_result()
+
+    # Fetch the requisite properties of the specified PDF.
+    print(f'Size of the specified PDF file:" {pdf_properties_result.get_pdf_properties_dict().get("document").get("file_size")}')
+    print(f'Version of the specified PDF file:" {pdf_properties_result.get_pdf_properties_dict().get("document").get("pdf_version")}')
+    print(f'Page count of the specified PDF file:" {pdf_properties_result.get_pdf_properties_dict().get("document").get("page_count")}')
+
+    # pdf_properties = {'file_size':}
+    return pdf_properties_result.get_pdf_properties_dict()
+
+    # except (ServiceApiException, ServiceUsageException, SdkException) as e:
+    #     logging.exception(f'Exception encountered while executing operation: {e}')
 
 
-if __name__ == '__main__':
-    GetPDFProperties()
+# if __name__ == '__main__':
+#     GetPDFProperties()

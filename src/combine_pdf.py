@@ -11,6 +11,7 @@ import os
 from datetime import datetime
 
 from adobe.pdfservices.operation.auth.service_principal_credentials import ServicePrincipalCredentials
+from adobe.pdfservices.operation.config.client_config import ClientConfig
 from adobe.pdfservices.operation.exception.exceptions import ServiceApiException, ServiceUsageException, SdkException
 from adobe.pdfservices.operation.io.stream_asset import StreamAsset
 from adobe.pdfservices.operation.pdf_services import PDFServices
@@ -32,59 +33,68 @@ logging.basicConfig(level=logging.INFO)
 #
 def combine_pdf(*input_pdf_names):
     print("Inside combine_pdf function")
-    try:
-        # Initial setup, create credentials instance
-        credentials = ServicePrincipalCredentials(
-            client_id=os.getenv('PDF_SERVICES_CLIENT_ID'),
-            client_secret=os.getenv('PDF_SERVICES_CLIENT_SECRET')
-        )
+    # try:
+    # Initial setup, create credentials instance
+    credentials = ServicePrincipalCredentials(
+        client_id=os.getenv('PDF_SERVICES_CLIENT_ID'),
+        client_secret=os.getenv('PDF_SERVICES_CLIENT_SECRET')
+    )
 
-        # Creates a PDF Services instance
-        pdf_services = PDFServices(credentials=credentials)
+    # Creates client config instance with custom time-outs.
+    client_config: ClientConfig = ClientConfig(
+        connect_timeout=999000,
+        read_timeout=999000,
+    )
+
+    # Creates a PDF Services instance
+    pdf_services = PDFServices(
+        credentials=credentials,
+        client_config=client_config
+    )
+
+    # Create parameters for the job
+    combine_pdf_params = CombinePDFParams()
+
+    stream_assets = []
+    # total_pdfs = len(input_pdf_names)
+    # for i in range(0,total_pdfs):
+    for i,pdf_name in enumerate(input_pdf_names):
+        print(f'Collecting PDF: {pdf_name}')
+        # file = open('src/resources/combineFilesInput1.pdf', 'rb')
+        file = open(pdf_name, 'rb')
+        input_stream = file.read()
+        file.close()
+
+        # Creates an asset from source file(s) and upload
+        stream_assets.append(StreamAsset(input_stream, PDFServicesMediaType.PDF))
+        assets = pdf_services.upload_assets(stream_assets)
 
         # Create parameters for the job
-        combine_pdf_params = CombinePDFParams()
+        combine_pdf_params = combine_pdf_params.add_asset(assets[i])
+    # End of for loop
+    
+    # Creates a new job instance
+    combine_pdf_job = CombinePDFJob(combine_pdf_params=combine_pdf_params)
 
-        stream_assets = []
-        # total_pdfs = len(input_pdf_names)
-        # for i in range(0,total_pdfs):
-        for i,pdf_name in enumerate(input_pdf_names):
-            print(f'Collecting PDF: {pdf_name}')
-            # file = open('src/resources/combineFilesInput1.pdf', 'rb')
-            file = open(pdf_name, 'rb')
-            input_stream = file.read()
-            file.close()
+    # Submit the job and gets the job result
+    location = pdf_services.submit(combine_pdf_job)
+    pdf_services_response = pdf_services.get_job_result(location, CombinePDFResult)
 
-            # Creates an asset from source file(s) and upload
-            stream_assets.append(StreamAsset(input_stream, PDFServicesMediaType.PDF))
-            assets = pdf_services.upload_assets(stream_assets)
+    # Get content from the resulting asset(s)
+    result_asset: CombinePDFResult = pdf_services_response.get_result().get_asset()
+    stream_asset: StreamAsset = pdf_services.get_content(result_asset)
 
-            # Create parameters for the job
-            combine_pdf_params = combine_pdf_params.add_asset(assets[i])
-        # End of for loop
-        
-        # Creates a new job instance
-        combine_pdf_job = CombinePDFJob(combine_pdf_params=combine_pdf_params)
-
-        # Submit the job and gets the job result
-        location = pdf_services.submit(combine_pdf_job)
-        pdf_services_response = pdf_services.get_job_result(location, CombinePDFResult)
-
-        # Get content from the resulting asset(s)
-        result_asset: CombinePDFResult = pdf_services_response.get_result().get_asset()
-        stream_asset: StreamAsset = pdf_services.get_content(result_asset)
-
-        # Creates an output stream and copy stream asset's content to it
-        # output_file_path = self.create_output_file_path()
-        now = datetime.now()
-        time_stamp = now.strftime("%Y%m%d%H%M%S")
-        os.makedirs("data", exist_ok=True)
-        output_file_path = f"data/combined-pdf-{time_stamp}.pdf"
-        with open(output_file_path, "wb") as file:
-            file.write(stream_asset.get_input_stream())
-        return output_file_path
-    except (ServiceApiException, ServiceUsageException, SdkException) as e:
-        logging.exception(f'Exception encountered while executing operation: {e}')
+    # Creates an output stream and copy stream asset's content to it
+    # output_file_path = self.create_output_file_path()
+    now = datetime.now()
+    time_stamp = now.strftime("%Y%m%d%H%M%S")
+    os.makedirs("data", exist_ok=True)
+    output_file_path = f"data/combined-pdf-{time_stamp}.pdf"
+    with open(output_file_path, "wb") as file:
+        file.write(stream_asset.get_input_stream())
+    return output_file_path
+    # except (ServiceApiException, ServiceUsageException, SdkException) as e:
+    #     logging.exception(f'Exception encountered while executing operation: {e}')
 
 # # Generates a string containing a directory structure and file name for the output file
 # @staticmethod

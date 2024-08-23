@@ -11,6 +11,7 @@ import os
 from datetime import datetime
 
 from adobe.pdfservices.operation.auth.service_principal_credentials import ServicePrincipalCredentials
+from adobe.pdfservices.operation.config.client_config import ClientConfig
 from adobe.pdfservices.operation.exception.exceptions import ServiceApiException, ServiceUsageException, SdkException
 from adobe.pdfservices.operation.io.cloud_asset import CloudAsset
 from adobe.pdfservices.operation.io.stream_asset import StreamAsset
@@ -32,50 +33,59 @@ logging.basicConfig(level=logging.INFO)
 #
 def export_pdf_to_docx(input_pdf_name):
     print("Inside export_pdf_to_docx function")
-    try:
-        # file = open('src/resources/exportPDFInput.pdf', 'rb')
-        file = open(input_pdf_name, 'rb')
-        input_stream = file.read()
-        file.close()
+    # try:
+    # file = open('src/resources/exportPDFInput.pdf', 'rb')
+    file = open(input_pdf_name, 'rb')
+    input_stream = file.read()
+    file.close()
 
-        # Initial setup, create credentials instance
-        credentials = ServicePrincipalCredentials(
-            client_id=os.getenv('PDF_SERVICES_CLIENT_ID'),
-            client_secret=os.getenv('PDF_SERVICES_CLIENT_SECRET')
-        )
+    # Initial setup, create credentials instance
+    credentials = ServicePrincipalCredentials(
+        client_id=os.getenv('PDF_SERVICES_CLIENT_ID'),
+        client_secret=os.getenv('PDF_SERVICES_CLIENT_SECRET')
+    )
 
-        # Creates a PDF Services instance
-        pdf_services = PDFServices(credentials=credentials)
+    # Creates client config instance with custom time-outs.
+    client_config: ClientConfig = ClientConfig(
+        connect_timeout=999000,
+        read_timeout=999000,
+    )
 
-        # Creates an asset(s) from source file(s) and upload
-        input_asset = pdf_services.upload(input_stream=input_stream, mime_type=PDFServicesMediaType.PDF)
+    # Creates a PDF Services instance
+    pdf_services = PDFServices(
+        credentials=credentials,
+        client_config=client_config
+    )
 
-        # Create parameters for the job
-        export_pdf_params = ExportPDFParams(target_format=ExportPDFTargetFormat.DOCX)
+    # Creates an asset(s) from source file(s) and upload
+    input_asset = pdf_services.upload(input_stream=input_stream, mime_type=PDFServicesMediaType.PDF)
 
-        # Creates a new job instance
-        export_pdf_job = ExportPDFJob(input_asset=input_asset, export_pdf_params=export_pdf_params)
+    # Create parameters for the job
+    export_pdf_params = ExportPDFParams(target_format=ExportPDFTargetFormat.DOCX)
 
-        # Submit the job and gets the job result
-        location = pdf_services.submit(export_pdf_job)
-        pdf_services_response = pdf_services.get_job_result(location, ExportPDFResult)
+    # Creates a new job instance
+    export_pdf_job = ExportPDFJob(input_asset=input_asset, export_pdf_params=export_pdf_params)
 
-        # Get content from the resulting asset(s)
-        result_asset: CloudAsset = pdf_services_response.get_result().get_asset()
-        stream_asset: StreamAsset = pdf_services.get_content(result_asset)
+    # Submit the job and gets the job result
+    location = pdf_services.submit(export_pdf_job)
+    pdf_services_response = pdf_services.get_job_result(location, ExportPDFResult)
 
-        # Creates an output stream and copy stream asset's content to it
-        # output_file_path = self.create_output_file_path()
-        now = datetime.now()
-        time_stamp = now.strftime("%Y%m%d%H%M%S")
-        os.makedirs("data", exist_ok=True) # output/ExportPDFToDOCX
-        output_file_path = f"data/output-document-{time_stamp}.docx"
+    # Get content from the resulting asset(s)
+    result_asset: CloudAsset = pdf_services_response.get_result().get_asset()
+    stream_asset: StreamAsset = pdf_services.get_content(result_asset)
 
-        with open(output_file_path, "wb") as file:
-            file.write(stream_asset.get_input_stream())
-        return output_file_path
-    except (ServiceApiException, ServiceUsageException, SdkException) as e:
-        logging.exception(f'Exception encountered while executing operation: {e}')
+    # Creates an output stream and copy stream asset's content to it
+    # output_file_path = self.create_output_file_path()
+    now = datetime.now()
+    time_stamp = now.strftime("%Y%m%d%H%M%S")
+    os.makedirs("data", exist_ok=True) # output/ExportPDFToDOCX
+    output_file_path = f"data/output-document-{time_stamp}.docx"
+
+    with open(output_file_path, "wb") as file:
+        file.write(stream_asset.get_input_stream())
+    return output_file_path
+    # except (ServiceApiException, ServiceUsageException, SdkException) as e:
+    #     logging.exception(f'Exception encountered while executing operation: {e}')
 
 # # Generates a string containing a directory structure and file name for the output file
 # @staticmethod
